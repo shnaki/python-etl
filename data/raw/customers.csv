@@ -1,0 +1,13 @@
+customer_id,name,email,age,prefecture,registered_at
+C001,田中太郎,tanaka@example.com,35,東京都,2024-01-15
+C002,佐藤花子,sato@example.com,28,大阪府,2024-02-20
+C003,鈴木一郎,suzuki@example.com,,神奈川県,2024-01-10
+C004,高橋美咲,takahashi@example.com,42,愛知県,2024-03-05
+C005,伊藤健太,ito@example.com,31,福岡県,2024-02-28
+C006,渡辺由美,,25,北海道,2024-04-12
+C007,山本翔太,yamamoto@example.com,38,東京都,2024-01-22
+C008,中村真理,nakamura@example.com,29,大阪府,2024-05-01
+C009,小林直樹,kobayashi@example.com,45,京都府,2024-03-18
+C010,加藤さくら,kato@example.com,33,東京都,2024-06-10
+C011,吉田裕太,yoshida@example.com,27,埼玉県,2024-04-05
+C012,山田花子,yamada@example.com,39,千葉県,2024-02-14
