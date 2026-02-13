@@ -1,143 +1,96 @@
-# Development Guidelines
+# 開発ガイドライン
 
-This document contains critical information about working with this codebase. Follow these guidelines precisely.
+このドキュメントには、このコードベースの操作に関する重要な情報が含まれています。これらのガイドラインに正確に従ってください。
 
-## Core Development Rules
+## 開発ルール
 
-1. Package Management
-   - ONLY use uv, NEVER pip
-   - Installation: `uv add <package>`
-   - Running tools: `uv run <tool>`
-   - Upgrading: `uv lock --upgrade-package <package>`
-   - FORBIDDEN: `uv pip install`, `@latest` syntax
+1. パッケージ管理
+    - uv だけを利用する、決して pip を利用しないこと
+    - インストール: `uv add <package>`
+    - ツールの実行: `uv run <tool>`
+    - アップグレード: `uv lock --upgrade-package <package>`
+    - 禁止事項: `uv pip install`, `@latest` syntax
 
-2. Code Quality
-   - Type hints required for all code
-   - Public APIs must have docstrings
-   - Functions must be focused and small
-   - Follow existing patterns exactly
-   - Line length: 120 chars maximum
-   - FORBIDDEN: imports inside functions. THEY SHOULD BE AT THE TOP OF THE FILE.
+2. コード品質
+    - すべてのコードに型ヒントが必要
+    - パブリックAPIには必ずドックストリング（Docstrings）を記述すること
+    - 関数は単一の機能に集中させ、短く保つこと
+    - 既存のパターンを厳格に遵守すること
+    - 1行の長さは最大120文字まで
+    - 禁止事項: 関数内でのインポート: インポート文は必ずファイルの先頭に記述すること
 
-3. Testing Requirements
-   - Framework: `uv run --frozen pytest`
-   - Async testing: use anyio, not asyncio
-   - Do not use `Test` prefixed classes, use functions
-   - Coverage: test edge cases and errors
-   - New features require tests
-   - Bug fixes require regression tests
-   - IMPORTANT: The `tests/client/test_client.py` is the most well designed test file. Follow its patterns.
-   - IMPORTANT: Be minimal, and focus on E2E tests: Use the `mcp.client.Client` whenever possible.
+3. テスト要件
+    - フレームワーク: `uv run --frozen pytest` を利用すること
+    - 非同期テスト: asyncio ではなく anyio を使用すること
+    - `Test` プリフィックスをつけたクラスは利用せず関数を利用すること
+    - カバレッジ: エッジケースやエラー系もテストすること
+    - 新機能にはテストを含めること
+    - バグ修正には再発防止のための回帰テストを含めること
 
-Test files mirror the source tree: `src/mcp/client/streamable_http.py` → `tests/client/test_streamable_http.py`
-Add tests to the existing file for that module.
+テストファイルの構成はソースツリーと対応させること: `src/aaa/bbb/some_file.py` → `tests/aaa/bbb/test_some_file.py`
+対象モジュールの既存ファイルにテストを追加すること
 
-- For commits fixing bugs or adding features based on user reports add:
+## Python ツール
 
-  ```bash
-  git commit --trailer "Reported-by:<name>"
-  ```
-
-  Where `<name>` is the name of the user.
-
-- For commits related to a Github issue, add
-
-  ```bash
-  git commit --trailer "Github-Issue:#<number>"
-  ```
-
-- NEVER ever mention a `co-authored-by` or similar aspects. In particular, never
-  mention the tool used to create the commit message or PR.
-
-## Pull Requests
-
-- Create a detailed message of what changed. Focus on the high level description of
-  the problem it tries to solve, and how it is solved. Don't go into the specifics of the
-  code unless it adds clarity.
-
-- NEVER ever mention a `co-authored-by` or similar aspects. In particular, never
-  mention the tool used to create the commit message or PR.
-
-## Breaking Changes
-
-When making breaking changes, document them in `docs/migration.md`. Include:
-
-- What changed
-- Why it changed
-- How to migrate existing code
-
-Search for related sections in the migration guide and group related changes together
-rather than adding new standalone sections.
-
-## Python Tools
-
-## Code Formatting
+## コードフォーマッタ
 
 1. Ruff
-   - Format: `uv run --frozen ruff format .`
-   - Check: `uv run --frozen ruff check .`
-   - Fix: `uv run --frozen ruff check . --fix`
-   - Critical issues:
-     - Line length (88 chars)
-     - Import sorting (I001)
-     - Unused imports
-   - Line wrapping:
-     - Strings: use parentheses
-     - Function calls: multi-line with proper indent
-     - Imports: try to use a single line
+    - フォーマット: `uv run --frozen ruff format .`
+    - チェック: `uv run --frozen ruff check .`
+    - 修正: `uv run --frozen ruff check . --fix`
+    - 重要事項:
+        - 1行の長さ (88文字)
+        - インポートのソーティング (I001)
+        - 未使用のインポートの削除
+    - 改行ルール:
+        - 文字列: 括弧`()`を使用すること
+        - 関数呼び出し: 適切なインデントを用いて複数行に分けること
+        - インポート: 可能な限り1行にまとめること
 
-2. Type Checking
-   - Tool: `uv run --frozen pyright`
-   - Requirements:
-     - Type narrowing for strings
-     - Version warnings can be ignored if checks pass
+2. 型チェック
+    - ツール: `uv run --frozen pyright`
+    - 要件:
+        - 文字列に対する型絞り込み (Type narrowing) を適切に行うこと
+        - チェックがパスしていれば、バージョンに関する警告は無視してもよい
 
-3. Pre-commit
-   - Config: `.pre-commit-config.yaml`
-   - Runs: on git commit
-   - Tools: Prettier (YAML/JSON), Ruff (Python)
-   - Ruff updates:
-     - Check PyPI versions
-     - Update config rev
-     - Commit config first
+## エラー解決
 
-## Error Resolution
+1. CI (継続的インテグレーション) の失敗
+    - 修正の優先順位:
+        1. Formatting
+        2. Type errors
+        3. Linting
+    - 型エラーへの対処:
+        - 行の前後関係（コンテキスト）を十分に確認すること
+        - Optional 型（None の可能性）をチェックすること
+        - 型絞り込み (Type narrowing) を追加すること
+        - 関数のシグネチャ (引数や戻り値の定義) を検証すること
 
-1. CI Failures
-   - Fix order:
-     1. Formatting
-     2. Type errors
-     3. Linting
-   - Type errors:
-     - Get full line context
-     - Check Optional types
-     - Add type narrowing
-     - Verify function signatures
+2. よくある問題
+    - 行の長さ:
+        - 文字列は括弧`()`を使って分割すること
+        - 関数呼び出しは複数行にする
+        - インポート文も適宜分割する
+    - 型:
+        - None チェックを追加する
+        - 文字列の型を絞り込む
+        - 既存のパターンに合わせる
 
-2. Common Issues
-   - Line length:
-     - Break strings with parentheses
-     - Multi-line function calls
-     - Split imports
-   - Types:
-     - Add None checks
-     - Narrow string types
-     - Match existing patterns
+3. ベストプラクティス
+    - コミット前に git status を確認すること
+    - 型チェックを実行する前にフォーマッタを実行すること
+    - 変更は最小限に留めること
+    - 既存のパターンに従うこと
+    - パブリックAPIにはドキュメント (Docstrings) を付与すること
+    - 徹底的にテストを行うこと
 
-3. Best Practices
-   - Check git status before commits
-   - Run formatters before type checks
-   - Keep changes minimal
-   - Follow existing patterns
-   - Document public APIs
-   - Test thoroughly
+## 例外処理
 
-## Exception Handling
-
-- **Always use `logger.exception()` instead of `logger.error()` when catching exceptions**
-  - Don't include the exception in the message: `logger.exception("Failed")` not `logger.exception(f"Failed: {e}")`
-- **Catch specific exceptions** where possible:
-  - File ops: `except (OSError, PermissionError):`
-  - JSON: `except json.JSONDecodeError:`
-  - Network: `except (ConnectionError, TimeoutError):`
-- **FORBIDDEN** `except Exception:` - unless in top-level handlers
+- **例外をキャッチした場合は、`logger.error()`ではなく、常に`logger.exception()`を使用すること**
+    - メッセージの中に例外オブジェクトを含めないこと: `logger.exception(f"Failed: {e}")` ではなく
+      `logger.exception("Failed")`
+- 可能な限り**特定の例外を指定してキャッチすること**:
+    - ファイル操作: `except (OSError, PermissionError):`
+    - JSON: `except json.JSONDecodeError:`
+    - ネットワーク: `except (ConnectionError, TimeoutError):`
+- **禁止事項** `except Exception:` は厳禁、ただし、トップレベル (最上位) のハンドラーは除く
