@@ -1,4 +1,4 @@
-"""Tests for ETLパイプライン統合テスト."""
+"""Tests for Extract処理."""
 
 import importlib
 import pathlib
@@ -7,11 +7,8 @@ from typing import Final
 import pandas as pd
 import pytest
 
-from python_etl.etl import main
-
 # モジュール自体をインポート
 extract_module = importlib.import_module("python_etl.extract")
-load_module = importlib.import_module("python_etl.load")
 
 # テスト用の定数
 TEST_CUSTOMERS_DATA: Final[list[dict[str, object]]] = [
@@ -58,12 +55,20 @@ TEST_SALES_DATA: Final[list[dict[str, object]]] = [
         "discount_rate": 0.05,
         "sale_date": "2024-01-03",
     },
+    {
+        "sale_id": 4,
+        "customer_id": 999,
+        "product_id": 101,
+        "quantity": None,
+        "discount_rate": 0.0,
+        "sale_date": "2024-01-04",
+    },
 ]
 
 
 @pytest.fixture
-def temp_etl_dirs(tmp_path: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
-    """一時的なETL用ディレクトリを作成するfixture。"""
+def temp_csv_dir(tmp_path: pathlib.Path) -> pathlib.Path:
+    """一時的なCSVディレクトリを作成するfixture。"""
     raw_dir = tmp_path / "raw"
     raw_dir.mkdir()
 
@@ -72,30 +77,27 @@ def temp_etl_dirs(tmp_path: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
     pd.DataFrame(TEST_PRODUCTS_DATA).to_csv(raw_dir / "products.csv", index=False)
     pd.DataFrame(TEST_SALES_DATA).to_csv(raw_dir / "sales.csv", index=False)
 
-    out_dir = tmp_path / "processed"
-    return raw_dir, out_dir
+    return raw_dir
 
 
-def test_main_integration(temp_etl_dirs: tuple[pathlib.Path, pathlib.Path], monkeypatch: pytest.MonkeyPatch) -> None:
-    """main関数が正常にETLパイプラインを実行することをテスト。"""
-    raw_dir, out_dir = temp_etl_dirs
+def test_extract_success(temp_csv_dir: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """extract関数が正常にCSVファイルを読み込むことをテスト。"""
+    monkeypatch.setattr(extract_module, "RAW_DIR", temp_csv_dir)
 
-    # RAW_DIRとOUT_DIRをモック
-    monkeypatch.setattr(extract_module, "RAW_DIR", raw_dir)
-    monkeypatch.setattr(load_module, "OUT_DIR", out_dir)
+    customers, products, sales = extract_module.extract()
 
-    # ETLパイプラインを実行
-    main()
+    assert len(customers) == 3
+    assert len(products) == 3
+    assert len(sales) == 4
+    assert "customer_id" in customers.columns
+    assert "product_id" in products.columns
+    assert "sale_id" in sales.columns
 
-    # 出力ファイルが作成されていることを確認
-    assert (out_dir / "sales_enriched.csv").exists()
-    assert (out_dir / "customer_summary.csv").exists()
-    assert (out_dir / "category_summary.csv").exists()
-    assert (out_dir / "daily_sales.csv").exists()
 
-    # 出力ファイルの内容を確認
-    enriched = pd.read_csv(out_dir / "sales_enriched.csv")
-    assert len(enriched) == 3  # 有効な売上データは3件
+def test_extract_file_not_found(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """extract関数がファイルが存在しない場合に例外を発生させることをテスト。"""
+    non_existent_dir = tmp_path / "non_existent"
+    monkeypatch.setattr(extract_module, "RAW_DIR", non_existent_dir)
 
-    customer_summary = pd.read_csv(out_dir / "customer_summary.csv")
-    assert len(customer_summary) == 3  # 3人の顧客
+    with pytest.raises(OSError):
+        extract_module.extract()
