@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(where:*)",
+      "Bash(python3:*)",
+      "Bash(py:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run ruff format:*)",
+      "Bash(uv run ruff check:*)",
+      "Bash(ls:*)",
+      "Bash(uv run pyright:*)",
+      "Bash(uv add:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run python:*)"
+    ]
+  }
+}
