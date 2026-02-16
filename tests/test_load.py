@@ -1,17 +1,13 @@
 """Tests for Load処理."""
 
-import importlib
 import pathlib
-import tempfile
 from typing import Final
 
 import pandas as pd
 import pytest
 
+from python_etl.load import load
 from python_etl.transform import aggregate, clean_customers, clean_sales, merge_and_enrich
-
-# モジュール自体をインポート
-load_module = importlib.import_module("python_etl.load")
 
 # テスト用の定数
 TEST_CUSTOMERS_DATA: Final[list[dict[str, object]]] = [
@@ -87,7 +83,12 @@ def sales_df() -> pd.DataFrame:
     return pd.DataFrame(TEST_SALES_DATA)
 
 
-def test_load(sales_df: pd.DataFrame, customers_df: pd.DataFrame, products_df: pd.DataFrame) -> None:
+def test_load(
+    sales_df: pd.DataFrame,
+    customers_df: pd.DataFrame,
+    products_df: pd.DataFrame,
+    tmp_path: pathlib.Path,
+) -> None:
     """load関数がCSVファイルを正しく出力することをテスト。"""
     # 事前にクレンジングと結合
     customers = clean_customers(customers_df)
@@ -95,25 +96,18 @@ def test_load(sales_df: pd.DataFrame, customers_df: pd.DataFrame, products_df: p
     enriched = merge_and_enrich(sales, customers, products_df)
     customer_summary, category_summary, daily_sales = aggregate(enriched)
 
-    # 一時ディレクトリに出力
-    with tempfile.TemporaryDirectory() as tmpdir:
-        original_out_dir = getattr(load_module, "OUT_DIR")  # noqa: B009
-        setattr(load_module, "OUT_DIR", pathlib.Path(tmpdir))  # noqa: B010
+    out_dir = tmp_path / "output"
+    load(enriched, customer_summary, category_summary, daily_sales, out_dir=out_dir)
 
-        try:
-            load_module.load(enriched, customer_summary, category_summary, daily_sales)
+    # ファイルが作成されていることを確認
+    assert (out_dir / "sales_enriched.csv").exists()
+    assert (out_dir / "customer_summary.csv").exists()
+    assert (out_dir / "category_summary.csv").exists()
+    assert (out_dir / "daily_sales.csv").exists()
 
-            # ファイルが作成されていることを確認
-            assert (pathlib.Path(tmpdir) / "sales_enriched.csv").exists()
-            assert (pathlib.Path(tmpdir) / "customer_summary.csv").exists()
-            assert (pathlib.Path(tmpdir) / "category_summary.csv").exists()
-            assert (pathlib.Path(tmpdir) / "daily_sales.csv").exists()
-
-            # ファイルの内容を確認
-            loaded_enriched = pd.read_csv(pathlib.Path(tmpdir) / "sales_enriched.csv")
-            assert len(loaded_enriched) == len(enriched)
-        finally:
-            setattr(load_module, "OUT_DIR", original_out_dir)  # noqa: B010
+    # ファイルの内容を確認
+    loaded_enriched = pd.read_csv(out_dir / "sales_enriched.csv")
+    assert len(loaded_enriched) == len(enriched)
 
 
 def test_load_permission_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -128,4 +122,4 @@ def test_load_permission_error(monkeypatch: pytest.MonkeyPatch) -> None:
     test_df = pd.DataFrame({"col1": [1, 2, 3]})
 
     with pytest.raises((OSError, PermissionError)):
-        load_module.load(test_df, test_df, test_df, test_df)
+        load(test_df, test_df, test_df, test_df)

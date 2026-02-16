@@ -1,17 +1,12 @@
 """Tests for ETLパイプライン統合テスト."""
 
-import importlib
 import pathlib
 from typing import Final
 
 import pandas as pd
 import pytest
 
-from python_etl.etl import main
-
-# モジュール自体をインポート
-extract_module = importlib.import_module("python_etl.extract")
-load_module = importlib.import_module("python_etl.load")
+from python_etl.etl import main, parse_args
 
 # テスト用の定数
 TEST_CUSTOMERS_DATA: Final[list[dict[str, object]]] = [
@@ -76,16 +71,12 @@ def temp_etl_dirs(tmp_path: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
     return raw_dir, out_dir
 
 
-def test_main_integration(temp_etl_dirs: tuple[pathlib.Path, pathlib.Path], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_integration(temp_etl_dirs: tuple[pathlib.Path, pathlib.Path]) -> None:
     """main関数が正常にETLパイプラインを実行することをテスト。"""
     raw_dir, out_dir = temp_etl_dirs
 
-    # RAW_DIRとOUT_DIRをモック
-    monkeypatch.setattr(extract_module, "RAW_DIR", raw_dir)
-    monkeypatch.setattr(load_module, "OUT_DIR", out_dir)
-
-    # ETLパイプラインを実行
-    main()
+    # CLI引数でディレクトリを指定してETLパイプラインを実行
+    main(["--input-dir", str(raw_dir), "--output-dir", str(out_dir)])
 
     # 出力ファイルが作成されていることを確認
     assert (out_dir / "sales_enriched.csv").exists()
@@ -99,3 +90,27 @@ def test_main_integration(temp_etl_dirs: tuple[pathlib.Path, pathlib.Path], monk
 
     customer_summary = pd.read_csv(out_dir / "customer_summary.csv")
     assert len(customer_summary) == 3  # 3人の顧客
+
+
+def test_parse_args_defaults() -> None:
+    """引数なしでparse_argsを呼んだ場合、両方Noneになることをテスト。"""
+    parsed = parse_args([])
+
+    assert parsed.input_dir is None
+    assert parsed.output_dir is None
+
+
+def test_parse_args_with_both_dirs() -> None:
+    """--input-dirと--output-dirを両方指定した場合のテスト。"""
+    parsed = parse_args(["--input-dir", "/tmp/input", "--output-dir", "/tmp/output"])
+
+    assert parsed.input_dir == pathlib.Path("/tmp/input")
+    assert parsed.output_dir == pathlib.Path("/tmp/output")
+
+
+def test_main_with_nonexistent_input_dir(tmp_path: pathlib.Path) -> None:
+    """存在しない入力ディレクトリを指定した場合にOSErrorが発生することをテスト。"""
+    non_existent = tmp_path / "does_not_exist"
+
+    with pytest.raises(OSError):
+        main(["--input-dir", str(non_existent)])

@@ -14,9 +14,14 @@ BASE_DIR: Final[pathlib.Path] = pathlib.Path(__file__).resolve().parent.parent.p
 RAW_DIR: Final[pathlib.Path] = BASE_DIR / "data" / "raw"
 
 
-def extract() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def extract(
+    raw_dir: pathlib.Path | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     CSV ファイルを読み込む。
+
+    Args:
+        raw_dir: 読み込み元ディレクトリ。Noneの場合はデフォルトの RAW_DIR を使用する。
 
     Returns:
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: 顧客、商品、売上のDataFrameのタプル
@@ -26,10 +31,11 @@ def extract() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         pd.errors.EmptyDataError: CSVファイルが空の場合
         pd.errors.ParserError: CSVファイルのパースに失敗した場合
     """
+    target_dir = raw_dir if raw_dir is not None else RAW_DIR
     try:
-        customers = pd.read_csv(RAW_DIR / "customers.csv")
-        products = pd.read_csv(RAW_DIR / "products.csv")
-        sales = pd.read_csv(RAW_DIR / "sales.csv")
+        customers = pd.read_csv(target_dir / "customers.csv")
+        products = pd.read_csv(target_dir / "products.csv")
+        sales = pd.read_csv(target_dir / "sales.csv")
         logger.info(f"[Extract] customers: {len(customers)}件, products: {len(products)}件, sales: {len(sales)}件")
         return customers, products, sales
     except (OSError, PermissionError):
