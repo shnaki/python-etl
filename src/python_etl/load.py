@@ -19,6 +19,8 @@ def load(
     customer_summary: pd.DataFrame,
     category_summary: pd.DataFrame,
     daily_sales: pd.DataFrame,
+    *,
+    out_dir: pathlib.Path | None = None,
 ) -> None:
     """
     加工結果を CSV に出力する。
@@ -28,13 +30,15 @@ def load(
         customer_summary: 顧客別サマリーDataFrame
         category_summary: カテゴリ別サマリーDataFrame
         daily_sales: 日別売上DataFrame
+        out_dir: 出力先ディレクトリ。Noneの場合はデフォルトの OUT_DIR を使用する。
 
     Raises:
         OSError: ディレクトリの作成やファイルの書き込みに失敗した場合
         PermissionError: ファイルへのアクセス権限がない場合
     """
+    target_dir = out_dir if out_dir is not None else OUT_DIR
     try:
-        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        target_dir.mkdir(parents=True, exist_ok=True)
 
         files: dict[str, pd.DataFrame] = {
             "sales_enriched.csv": enriched,
@@ -43,7 +47,7 @@ def load(
             "daily_sales.csv": daily_sales,
         }
         for filename, df in files.items():
-            path = OUT_DIR / filename
+            path = target_dir / filename
             df.to_csv(path, index=False, encoding="utf-8-sig")
             logger.info(f"[Load] {path} ({len(df)}件)")
     except (OSError, PermissionError):
