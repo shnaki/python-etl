@@ -1,6 +1,6 @@
 """Tests for Load処理."""
 
-import pathlib
+from pathlib import Path
 from typing import Final
 
 import pandas as pd
@@ -87,7 +87,7 @@ def test_load(
     sales_df: pd.DataFrame,
     customers_df: pd.DataFrame,
     products_df: pd.DataFrame,
-    tmp_path: pathlib.Path,
+    tmp_path: Path,
 ) -> None:
     """load関数がCSVファイルを正しく出力することをテスト。"""
     # 事前にクレンジングと結合
@@ -116,7 +116,7 @@ def test_load_permission_error(monkeypatch: pytest.MonkeyPatch) -> None:
     def mock_mkdir(*args: object, **kwargs: object) -> None:
         raise PermissionError("Permission denied")
 
-    monkeypatch.setattr(pathlib.Path, "mkdir", mock_mkdir)
+    monkeypatch.setattr(Path, "mkdir", mock_mkdir)
 
     # テストデータを作成
     test_df = pd.DataFrame({"col1": [1, 2, 3]})

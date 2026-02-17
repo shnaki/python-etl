@@ -1,6 +1,6 @@
 """Tests for ETLパイプライン統合テスト."""
 
-import pathlib
+from pathlib import Path
 from typing import Final
 
 import pandas as pd
@@ -57,7 +57,7 @@ TEST_SALES_DATA: Final[list[dict[str, object]]] = [
 
 
 @pytest.fixture
-def temp_etl_dirs(tmp_path: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
+def temp_etl_dirs(tmp_path: Path) -> tuple[Path, Path]:
     """一時的なETL用ディレクトリを作成するfixture。"""
     raw_dir = tmp_path / "raw"
     raw_dir.mkdir()
@@ -71,7 +71,7 @@ def temp_etl_dirs(tmp_path: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
     return raw_dir, out_dir
 
 
-def test_main_integration(temp_etl_dirs: tuple[pathlib.Path, pathlib.Path]) -> None:
+def test_main_integration(temp_etl_dirs: tuple[Path, Path]) -> None:
     """main関数が正常にETLパイプラインを実行することをテスト。"""
     raw_dir, out_dir = temp_etl_dirs
 
@@ -104,11 +104,11 @@ def test_parse_args_with_both_dirs() -> None:
     """--input-dirと--output-dirを両方指定した場合のテスト。"""
     parsed = parse_args(["--input-dir", "/tmp/input", "--output-dir", "/tmp/output"])
 
-    assert parsed.input_dir == pathlib.Path("/tmp/input")
-    assert parsed.output_dir == pathlib.Path("/tmp/output")
+    assert parsed.input_dir == Path("/tmp/input")
+    assert parsed.output_dir == Path("/tmp/output")
 
 
-def test_main_with_nonexistent_input_dir(tmp_path: pathlib.Path) -> None:
+def test_main_with_nonexistent_input_dir(tmp_path: Path) -> None:
     """存在しない入力ディレクトリを指定した場合にOSErrorが発生することをテスト。"""
     non_existent = tmp_path / "does_not_exist"
 

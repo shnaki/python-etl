@@ -1,6 +1,6 @@
 """Tests for Extract処理."""
 
-import pathlib
+from pathlib import Path
 from typing import Final
 
 import pandas as pd
@@ -65,7 +65,7 @@ TEST_SALES_DATA: Final[list[dict[str, object]]] = [
 
 
 @pytest.fixture
-def temp_csv_dir(tmp_path: pathlib.Path) -> pathlib.Path:
+def temp_csv_dir(tmp_path: Path) -> Path:
     """一時的なCSVディレクトリを作成するfixture。"""
     raw_dir = tmp_path / "raw"
     raw_dir.mkdir()
@@ -78,7 +78,7 @@ def temp_csv_dir(tmp_path: pathlib.Path) -> pathlib.Path:
     return raw_dir
 
 
-def test_extract_success(temp_csv_dir: pathlib.Path) -> None:
+def test_extract_success(temp_csv_dir: Path) -> None:
     """extract関数が正常にCSVファイルを読み込むことをテスト。"""
     customers, products, sales = extract(raw_dir=temp_csv_dir)
 
@@ -90,7 +90,7 @@ def test_extract_success(temp_csv_dir: pathlib.Path) -> None:
     assert "sale_id" in sales.columns
 
 
-def test_extract_file_not_found(tmp_path: pathlib.Path) -> None:
+def test_extract_file_not_found(tmp_path: Path) -> None:
     """extract関数がファイルが存在しない場合に例外を発生させることをテスト。"""
     non_existent_dir = tmp_path / "non_existent"
 
@@ -98,7 +98,7 @@ def test_extract_file_not_found(tmp_path: pathlib.Path) -> None:
         extract(raw_dir=non_existent_dir)
 
 
-def test_extract_default_dir(temp_csv_dir: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_extract_default_dir(temp_csv_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """引数なしのextract()がデフォルトのRAW_DIRを使用することをテスト。"""
     import importlib
 
