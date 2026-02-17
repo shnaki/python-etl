@@ -1,7 +1,7 @@
 """Extract処理 - CSVファイルからデータを読み込む。"""
 
 import logging
-import pathlib
+from pathlib import Path
 from typing import Final
 
 import pandas as pd
@@ -10,12 +10,12 @@ import pandas as pd
 logger: Final[logging.Logger] = logging.getLogger(__name__)
 
 # ディレクトリパスの設定
-BASE_DIR: Final[pathlib.Path] = pathlib.Path(__file__).resolve().parent.parent.parent
-RAW_DIR: Final[pathlib.Path] = BASE_DIR / "data" / "raw"
+BASE_DIR: Final[Path] = Path(__file__).resolve().parent.parent.parent
+RAW_DIR: Final[Path] = BASE_DIR / "data" / "raw"
 
 
 def extract(
-    raw_dir: pathlib.Path | None = None,
+    raw_dir: Path | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     CSV ファイルを読み込む。

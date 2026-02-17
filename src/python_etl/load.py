@@ -1,7 +1,7 @@
 """Load処理 - 加工結果をCSVファイルに出力する。"""
 
 import logging
-import pathlib
+from pathlib import Path
 from typing import Final
 
 import pandas as pd
@@ -10,8 +10,8 @@ import pandas as pd
 logger: Final[logging.Logger] = logging.getLogger(__name__)
 
 # ディレクトリパスの設定
-BASE_DIR: Final[pathlib.Path] = pathlib.Path(__file__).resolve().parent.parent.parent
-OUT_DIR: Final[pathlib.Path] = BASE_DIR / "data" / "processed"
+BASE_DIR: Final[Path] = Path(__file__).resolve().parent.parent.parent
+OUT_DIR: Final[Path] = BASE_DIR / "data" / "processed"
 
 
 def load(
@@ -20,7 +20,7 @@ def load(
     category_summary: pd.DataFrame,
     daily_sales: pd.DataFrame,
     *,
-    out_dir: pathlib.Path | None = None,
+    out_dir: Path | None = None,
 ) -> None:
     """
     加工結果を CSV に出力する。

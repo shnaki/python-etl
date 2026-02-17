@@ -9,7 +9,7 @@ Python + Pandas ETL サンプルプロジェクト
 
 import argparse
 import logging
-import pathlib
+from pathlib import Path
 from typing import Final
 
 from python_etl.extract import extract
@@ -33,13 +33,13 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Python + Pandas ETL パイプライン")
     parser.add_argument(
         "--input-dir",
-        type=pathlib.Path,
+        type=Path,
         default=None,
         help="入力CSVファイルのディレクトリ (デフォルト: data/raw)",
     )
     parser.add_argument(
         "--output-dir",
-        type=pathlib.Path,
+        type=Path,
         default=None,
         help="出力CSVファイルのディレクトリ (デフォルト: data/processed)",
     )
