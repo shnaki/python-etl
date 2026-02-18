@@ -16,7 +16,12 @@
       "Bash(gh issue view:*)",
       "Bash(uv run:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git -C /c/Users/shnaki/src/github.com/shnaki/python-etl log --oneline -15)",
+      "Bash(git -C /c/Users/shnaki/src/github.com/shnaki/python-etl status:*)",
+      "WebFetch(domain:containers.dev)"
     ]
   }
 }
